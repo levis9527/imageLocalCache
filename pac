@@ -11,7 +11,7 @@ var ipv6_proxy = function(){ return nowall_proxy(); };
 var userrules = [];
 var rules = [
   
-  "|http://hucai-a.oss-cn-hangzhou.aliyuncs.com",
+  "|http://xxxx.oss-cn-hangzhou.aliyuncs.com",
   "@@image/info"
 
 ];
