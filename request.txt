@@ -1,0 +1,16 @@
+127.0.0.1:1080/createCacheTask
+
+{
+    "taskName": "name",
+    "taskId": "12345",
+    "taskItem": [
+        {
+            "fileId": "2345",
+            "fileUrl": "https://img-pre.ivsky.com/img/tupian/pre/201610/19/shanli_de_qiuse-003.jpg"
+        }
+    ]
+}
+
+
+
+127.0.0.1:1080/taskStatus?taskId=12345
