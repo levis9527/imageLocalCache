@@ -11,7 +11,8 @@ var ipv6_proxy = function(){ return nowall_proxy(); };
 var userrules = [];
 var rules = [
   
-  "|http://hucai-a.oss-cn-hangzhou.aliyuncs.com",
+  "|http://diy-test.gdoss.xstore.ctyun.cn",
+  "|https://tse1-mm.cn.bing.net",
   "@@image/info"
 
 ];

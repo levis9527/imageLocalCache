@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -46,6 +47,7 @@ func SayHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	loger.Println("******************************")
 
 	// fileUrl := r.URL.RequestURI()
 	fileUrl := r.RequestURI
@@ -313,5 +315,69 @@ func main() {
 	http.HandleFunc("/taskStatus", GetTaskStatus)
 	http.HandleFunc("/createCacheTask", CreateCacheTask)
 	println("开始启动监听======")
-	http.ListenAndServe("127.0.0.1:"+PORT, nil)
+	http.ListenAndServe("127.0.0.1:"+PORT, &MyHandler{})
+
+}
+
+type MyHandler struct {
+}
+
+func (th *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodConnect {
+		handleHttps(w, r)
+		return
+	}
+
+	url := r.URL.String()
+	if strings.HasPrefix(url, "/pac") {
+		GetPac(w, r)
+		return
+	} else if strings.HasPrefix(url, "/taskStatus") {
+		GetTaskStatus(w, r)
+		return
+	} else if strings.HasPrefix(url, "/createCacheTask") {
+		CreateCacheTask(w, r)
+		return
+	}
+	// 其他流程走文件相关
+	method := r.Method
+	loger.Println(method)
+	if method == "CONNECT" {
+		w.WriteHeader(200)
+		w.Write([]byte(string("Connection Established")))
+		return
+	}
+
+	loger.Println(r.URL)
+
+	(&CacheHandler{}).ServeHTTP(w, r)
+}
+
+func handleHttps(w http.ResponseWriter, r *http.Request) {
+	destConn, err := net.DialTimeout("tcp", r.Host, 60*time.Second)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+
+	hijacker, ok := w.(http.Hijacker)
+	if !ok {
+		http.Error(w, "Hijacking not supported", http.StatusInternalServerError)
+		return
+	}
+
+	clientConn, _, err := hijacker.Hijack()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+	}
+	go transfer(destConn, clientConn)
+	go transfer(clientConn, destConn)
+
+}
+
+func transfer(destination io.WriteCloser, source io.ReadCloser) {
+	defer destination.Close()
+	defer source.Close()
+	io.Copy(destination, source)
 }
